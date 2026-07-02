@@ -1,4 +1,5 @@
 import { Note } from '../types/note';
+import { NoteTagBadge } from './NoteTagBadge';
 
 interface NoteItemProps {
   note: Note;
@@ -34,6 +35,14 @@ export function NoteItem({ note, isSelected, onSelect, onDelete }: NoteItemProps
       <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
         {note.content || '(내용 없음)'}
       </p>
+      {/* 태그 목록 */}
+      {note.tags && note.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {note.tags.map((tag) => (
+            <NoteTagBadge key={tag} tag={tag} />
+          ))}
+        </div>
+      )}
       <p className="text-[10px] text-muted-foreground/70 mt-2">
         {new Date(note.updatedAt).toLocaleDateString('ko-KR')}
       </p>
