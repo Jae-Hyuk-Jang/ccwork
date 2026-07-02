@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notes App — 아키텍처 다이어그램</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 40px 24px 80px;
+        background: #1a1a1a;
+        color: #e5e5e5;
+      }
+      h1 {
+        font-size: 26px;
+        margin-bottom: 4px;
+      }
+      .subtitle {
+        color: #9ca3af;
+        margin-top: 0;
+        margin-bottom: 40px;
+        font-size: 14px;
+      }
+      section {
+        margin-bottom: 48px;
+      }
+      h2 {
+        font-size: 19px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 8px;
+        color: #f5f5f5;
+      }
+      .desc {
+        color: #a3a3a3;
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+      .diagram-box {
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 24px;
+        background: #222;
+        overflow-x: auto;
+      }
+      code {
+        background: #2d2d2d;
+        color: #e5e5e5;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📝 Notes App — 아키텍처 다이어그램</h1>
+    <p class="subtitle">src/ 디렉토리 분석 기반 · 컴포넌트 트리 / 데이터 흐름 / 상태 맵</p>
+
+    <section>
+      <h2>1. 컴포넌트 트리</h2>
+      <p class="desc">
+        파일 간 import 관계. entry → provider → layout → feature 컴포넌트 → api 계층 순으로
+        계층별 색을 다르게 표시했다.
+      </p>
+      <div class="diagram-box">
+        <pre class="mermaid">
+graph TD
+  subgraph Entry["진입점"]
+    main["main.tsx"]
+  end
+
+  subgraph AppLayer["App"]
+    App["App.tsx"]
+  end
+
+  subgraph StateLayer["Context"]
+    Ctx["NotesContext.tsx"]
+  end
+
+  subgraph UILayer["UI 컴포넌트"]
+    Layout["Layout.tsx"]
+    NoteList["NoteList.tsx"]
+    NoteEditor["NoteEditor.tsx"]
+    NoteItem["NoteItem.tsx"]
+  end
+
+  subgraph DataLayer["데이터 계층"]
+    Api["api/notes.ts"]
+    Types["types/note.ts"]
+  end
+
+  subgraph External["외부"]
+    JsonServer[("json-server :3001")]
+  end
+
+  main --> App
+  App --> Ctx
+  App --> Layout
+  App --> NoteList
+  App --> NoteEditor
+  Layout -.props.-> NoteList
+  Layout -.props.-> NoteEditor
+  NoteList --> Ctx
+  NoteList --> NoteItem
+  NoteEditor --> Ctx
+  NoteItem --> Types
+  Ctx --> Api
+  Ctx --> Types
+  Api --> Types
+  Api --> JsonServer
+
+  classDef entry fill:#3b82f6,stroke:#93c5fd,color:#0b1220,font-weight:bold;
+  classDef app fill:#8b5cf6,stroke:#c4b5fd,color:#0b1220,font-weight:bold;
+  classDef ctx fill:#06b6d4,stroke:#67e8f9,color:#0b1220,font-weight:bold;
+  classDef ui fill:#22c55e,stroke:#86efac,color:#0b1220,font-weight:bold;
+  classDef data fill:#f59e0b,stroke:#fcd34d,color:#0b1220,font-weight:bold;
+  classDef ext fill:#ef4444,stroke:#fca5a5,color:#0b1220,font-weight:bold;
+
+  class main entry;
+  class App app;
+  class Ctx ctx;
+  class Layout,NoteList,NoteEditor,NoteItem ui;
+  class Api,Types data;
+  class JsonServer ext;
+        </pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. 데이터 흐름</h2>
+      <p class="desc">
+        요청/응답이 실제로 오가는 경로. json-server ↔ api 계층 ↔ Context ↔ UI 컴포넌트 순으로
+        CRUD 호출과 응답이 이동하는 방향을 화살표로 표현했다.
+      </p>
+      <div class="diagram-box">
+        <pre class="mermaid">
+flowchart LR
+  Server[("json-server&lt;br/&gt;:3001/notes")]
+
+  subgraph ApiLayer["api/notes.ts"]
+    Fetch["fetchNotes()"]
+    Create["createNote()"]
+    Update["updateNote()"]
+    Delete["deleteNote()"]
+  end
+
+  subgraph CtxLayer["NotesContext"]
+    CtxState["notes / loading / error"]
+  end
+
+  subgraph UILayer["UI 컴포넌트"]
+    List["NoteList"]
+    Item["NoteItem"]
+    Editor["NoteEditor"]
+  end
+
+  Server -- "마운트 시 1회" --> Fetch --> CtxState
+  Editor -- "저장" --> Create --> Server
+  Editor -- "저장" --> Update --> Server
+  Item -- "삭제" --> Delete --> Server
+  Create -- "응답으로 배열에 추가" --> CtxState
+  Update -- "응답으로 항목 교체" --> CtxState
+  Delete -- "성공 시 필터링" --> CtxState
+  CtxState --> List
+  CtxState --> Editor
+  List --> Item
+
+  classDef server fill:#ef4444,stroke:#fca5a5,color:#0b1220,font-weight:bold;
+  classDef api fill:#f59e0b,stroke:#fcd34d,color:#0b1220,font-weight:bold;
+  classDef ctx fill:#06b6d4,stroke:#67e8f9,color:#0b1220,font-weight:bold;
+  classDef ui fill:#22c55e,stroke:#86efac,color:#0b1220,font-weight:bold;
+
+  class Server server;
+  class Fetch,Create,Update,Delete api;
+  class CtxState ctx;
+  class List,Item,Editor ui;
+        </pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. 상태 맵</h2>
+      <p class="desc">
+        상태가 "어디에" 있고 "누가 소유"하는지에 집중한 지도. 전역 상태(Context, 파란색 계열)와
+        로컬 UI 상태(컴포넌트 useState, 노란색 계열)를 색으로 명확히 구분했다.
+      </p>
+      <div class="diagram-box">
+        <pre class="mermaid">
+flowchart TD
+  subgraph Global["전역 상태 — NotesContext (Provider)"]
+    GNotes["notes: Note[]"]
+    GLoading["loading: boolean"]
+    GError["error: string | null"]
+    GActions["createNote / updateNote / deleteNote"]
+  end
+
+  subgraph AppLocal["로컬 UI 상태 — App.tsx"]
+    LSel["selectedNoteId"]
+    LCreating["isCreating"]
+  end
+
+  subgraph EditorLocal["로컬 UI 상태 — NoteEditor.tsx"]
+    ETitle["title"]
+    EContent["content"]
+    ESaving["saving"]
+  end
+
+  GActions -->|useNotes 훅으로 접근| List["NoteList"]
+  GActions -->|useNotes 훅으로 접근| Editor["NoteEditor"]
+  GNotes -->|useNotes 훅으로 접근| List
+  GNotes -->|useNotes 훅으로 접근| Editor
+
+  LSel -->|props| List
+  LSel -->|props| Editor
+  LCreating -->|props| Editor
+
+  ETitle -.내부 폼 상태.-> Editor
+  EContent -.내부 폼 상태.-> Editor
+  ESaving -.내부 폼 상태.-> Editor
+
+  classDef global fill:#3b82f6,stroke:#93c5fd,color:#0b1220,font-weight:bold;
+  classDef local fill:#eab308,stroke:#fde047,color:#0b1220,font-weight:bold;
+  classDef comp fill:#22c55e,stroke:#86efac,color:#0b1220,font-weight:bold;
+
+  class GNotes,GLoading,GError,GActions global;
+  class LSel,LCreating,ETitle,EContent,ESaving local;
+  class List,Editor comp;
+        </pre>
+      </div>
+    </section>
+
+    <script>
+      mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    </script>
+  </body>
+</html>
