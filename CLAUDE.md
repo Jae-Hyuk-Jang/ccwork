@@ -69,6 +69,7 @@ The app requires the API server running for data to load — `npm run dev` start
 ## Conventions
 
 - Styling is Tailwind v4 utility classes (via `@tailwindcss/vite`), no CSS modules/styled-components. Custom theme tokens (`bg-card`, `text-foreground`, `border-border`, `text-muted-foreground`, `text-destructive`, etc.) are used — check `src/index.css` for the theme definitions before introducing new colors.
+- Visual design overview lives in `docs/design-system/README.md` ("The Digital Atelier"). The actual Do/Don't rules auto-load via `.claude/rules/design-system.md` whenever a component, `src/index.css`, or a design-system doc is touched — no need to remember to check it manually.
 - UI copy/strings are in Korean; keep new UI text consistent with that.
 - Prettier: single quotes, semicolons, trailing commas, 100-char print width (`.prettierrc`) — run `npm run format` rather than hand-formatting.
 - ESLint flat config (`eslint.config.js`) extends `typescript-eslint` recommended + `react-hooks` + `react-refresh`; `noUnusedLocals`/`noUnusedParameters` are enforced by `tsconfig.json`.
