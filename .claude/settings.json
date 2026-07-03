@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/check-design-principles.cjs",
+            "statusMessage": "디자인 시스템 원칙 검사 중..."
+          }
+        ]
+      }
+    ]
+  }
+}
