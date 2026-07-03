@@ -1,1 +1,1 @@
-npx lint-staged
+node scripts/check-secrets.cjs && npx lint-staged
