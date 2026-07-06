@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNotes } from '../context/NotesContext';
-import { NoteTagBadge } from './NoteTagBadge';
+import { useTags } from '../hooks/useTags';
+import { TagInputField } from './TagInputField';
 
 interface NoteEditorProps {
   selectedNoteId: string | null;
@@ -12,8 +13,7 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
   const { notes, createNote, updateNote } = useNotes();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
+  const { tags, tagInput, setTagInput, addTag, deleteTag, reset: resetTags } = useTags();
   const [saving, setSaving] = useState(false);
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
@@ -23,28 +23,13 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
     if (selectedNote) {
       setTitle(selectedNote.title);
       setContent(selectedNote.content);
-      setTags(selectedNote.tags ?? []);
+      resetTags(selectedNote.tags ?? []);
     } else if (isCreating) {
       setTitle('');
       setContent('');
-      setTags([]);
+      resetTags([]);
     }
-    setTagInput('');
   }, [selectedNoteId, isCreating]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleAddTag = () => {
-    const trimmed = tagInput.trim();
-    if (!trimmed) return;
-    const isDuplicate = tags.some((t) => t.toLowerCase() === trimmed.toLowerCase());
-    if (!isDuplicate) {
-      setTags((prev) => [...prev, trimmed]);
-    }
-    setTagInput('');
-  };
-
-  const handleDeleteTag = (tag: string) => {
-    setTags((prev) => prev.filter((t) => t !== tag));
-  };
 
   // 취소 시 미저장 변경을 되돌린다. selectedNoteId/isCreating이 그대로 유지되는 경우
   // (같은 노트를 계속 편집 중일 때) 동기화 useEffect가 재실행되지 않으므로 명시적으로 되돌린다.
@@ -52,13 +37,12 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
     if (selectedNote) {
       setTitle(selectedNote.title);
       setContent(selectedNote.content);
-      setTags(selectedNote.tags ?? []);
+      resetTags(selectedNote.tags ?? []);
     } else {
       setTitle('');
       setContent('');
-      setTags([]);
+      resetTags([]);
     }
-    setTagInput('');
     onDone();
   };
 
@@ -89,50 +73,37 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
       <div className="flex items-center justify-center h-full">
         <div className="text-center space-y-3">
           <p className="text-5xl">📝</p>
-          <p className="text-muted-foreground text-sm">노트를 선택하거나 새 노트를 만드세요</p>
+          <p className="text-on-surface-variant text-sm">노트를 선택하거나 새 노트를 만드세요</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-card rounded-3xl px-8 sm:px-12 py-8 shadow-[0_2px_12px_rgba(0,0,0,0.07)] border border-border max-w-2xl">
+    <div className="bg-surface-container-lowest rounded-3xl px-8 sm:px-12 py-8 max-w-2xl">
       {/* 섹션 라벨 */}
-      <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-6">
+      <p className="text-xs font-semibold tracking-widest uppercase text-on-surface-variant mb-6">
         {isCreating ? '새 노트' : '노트 편집'}
       </p>
 
       {/* 제목 입력 */}
       <input
+        aria-label="제목"
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="제목"
-        className="w-full text-xl font-bold text-foreground bg-transparent border-none outline-none placeholder:text-muted-foreground/50 mb-4"
+        className="w-full text-xl font-bold text-on-surface bg-transparent border-none outline-none focus:ring-1 focus:ring-tertiary/40 rounded placeholder:text-on-surface-variant/50 mb-4"
       />
 
       {/* 태그 영역 */}
-      <div className="flex flex-wrap items-center gap-1.5 mb-4">
-        {tags.map((tag) => (
-          <NoteTagBadge key={tag} tag={tag} onDelete={handleDeleteTag} />
-        ))}
-        <input
-          type="text"
-          value={tagInput}
-          onChange={(e) => setTagInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              handleAddTag();
-            }
-          }}
-          placeholder="태그 입력 후 Enter"
-          className="min-w-24 flex-1 text-xs text-foreground bg-transparent border-none outline-none placeholder:text-muted-foreground/50 py-0.5"
-        />
-      </div>
-
-      {/* 구분선 */}
-      <div className="h-px bg-border mb-4" />
+      <TagInputField
+        tags={tags}
+        tagInput={tagInput}
+        onTagInputChange={setTagInput}
+        onAddTag={addTag}
+        onDeleteTag={deleteTag}
+      />
 
       {/* 내용 입력 */}
       <textarea
@@ -140,21 +111,21 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
         onChange={(e) => setContent(e.target.value)}
         placeholder="내용을 입력하세요..."
         rows={14}
-        className="w-full text-base text-foreground/70 bg-transparent border-none outline-none resize-none placeholder:text-muted-foreground/50 leading-relaxed"
+        className="w-full text-base text-on-surface-variant bg-transparent border-none outline-none focus:ring-1 focus:ring-tertiary/40 rounded resize-none placeholder:text-on-surface-variant/50 leading-relaxed mt-4"
       />
 
       {/* 버튼 영역 */}
-      <div className="flex gap-3 mt-6 pt-4 border-t border-border">
+      <div className="flex gap-3 mt-8">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-foreground text-card px-5 py-2 rounded-xl text-sm font-semibold hover:opacity-75 transition-opacity disabled:opacity-40 cursor-pointer"
+          className="bg-gradient-to-r from-tertiary to-tertiary-container text-on-tertiary px-5 py-2 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 cursor-pointer"
         >
           {saving ? '저장 중...' : '저장'}
         </button>
         <button
           onClick={handleCancel}
-          className="px-5 py-2 rounded-xl text-sm font-semibold text-muted-foreground bg-muted hover:bg-border transition-colors cursor-pointer"
+          className="px-5 py-2 rounded-xl text-sm font-semibold text-on-surface bg-surface-container-high hover:bg-surface-container-highest transition-colors cursor-pointer"
         >
           취소
         </button>
