@@ -1,12 +1,27 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --color-background: hsl(0 0% 94%);
-  --color-card: hsl(0 0% 100%);
-  --color-foreground: hsl(220 35% 14%);
-  --color-muted: hsl(0 0% 90%);
-  --color-muted-foreground: hsl(0 0% 42%);
-  --color-border: hsl(0 0% 88%);
+  /* The Digital Atelier — surface 계층 (docs/design-system/colors-surfaces.md) */
+  --color-surface: #f8f9fa;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f1f4f6;
+  --color-surface-container: #eaeff1;
+  --color-surface-container-high: #e2e9ec;
+  --color-surface-container-highest: #dbe4e7;
+
+  /* 텍스트 */
+  --color-on-surface: #2b3437;
+  --color-on-surface-variant: #586064;
+
+  /* 고스트 보더 폴백 전용 (docs/design-system/elevation.md) */
+  --color-outline-variant: #abb3b7;
+
+  /* 액센트 (docs/design-system/colors-surfaces.md) */
+  --color-tertiary: #0053dc;
+  --color-tertiary-container: #3e76fe;
+  --color-on-tertiary: #faf8ff;
+
+  /* 새 시스템에 대응 토큰 없음 — 삭제/에러 액션용으로 유지 */
   --color-destructive: hsl(0 84% 60%);
 
   --font-sans: 'Pretendard Variable', system-ui, sans-serif;
@@ -22,8 +37,8 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
     margin: 0;
   }
 }
