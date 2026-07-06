@@ -1,4 +1,5 @@
 import { Note } from '../types/note';
+import { renderHighlighted } from '../utils/highlightText';
 import { NoteTagBadge } from './NoteTagBadge';
 
 interface NoteItemProps {
@@ -6,9 +7,10 @@ interface NoteItemProps {
   isSelected: boolean;
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
+  query: string;
 }
 
-export function NoteItem({ note, isSelected, onSelect, onDelete }: NoteItemProps) {
+export function NoteItem({ note, isSelected, onSelect, onDelete, query }: NoteItemProps) {
   return (
     <div
       onClick={() => onSelect(note.id)}
@@ -20,7 +22,7 @@ export function NoteItem({ note, isSelected, onSelect, onDelete }: NoteItemProps
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-semibold text-sm text-on-surface line-clamp-1 flex-1">
-          {note.title || '(제목 없음)'}
+          {note.title ? renderHighlighted(note.title, query) : '(제목 없음)'}
         </h3>
         <button
           onClick={(e) => {
@@ -33,7 +35,7 @@ export function NoteItem({ note, isSelected, onSelect, onDelete }: NoteItemProps
         </button>
       </div>
       <p className="text-xs text-on-surface-variant mt-1.5 line-clamp-2 leading-relaxed">
-        {note.content || '(내용 없음)'}
+        {note.content ? renderHighlighted(note.content, query) : '(내용 없음)'}
       </p>
       {/* 태그 목록 */}
       {note.tags && note.tags.length > 0 && (

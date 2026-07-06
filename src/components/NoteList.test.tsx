@@ -87,7 +87,7 @@ describe('NoteList - 검색 (이슈 1)', () => {
 
     await user.type(screen.getByLabelText('노트 검색'), 'react');
 
-    expect(screen.getByText('React 공부')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'React 공부' })).toBeInTheDocument();
     expect(screen.queryByText('TypeScript 정리')).not.toBeInTheDocument();
     expect(screen.queryByText('회의록')).not.toBeInTheDocument();
   });
@@ -129,15 +129,17 @@ describe('NoteList - 검색 (이슈 1)', () => {
   it('x 버튼을 클릭하면 검색어가 지워지고 전체 노트가 다시 보인다', async () => {
     const user = userEvent.setup();
     setNotesState({ notes });
-    render(<NoteList selectedNoteId={null} onSelect={() => {}} />);
+    const { container } = render(<NoteList selectedNoteId={null} onSelect={() => {}} />);
 
     await user.type(screen.getByLabelText('노트 검색'), 'react');
     expect(screen.queryByText('회의록')).not.toBeInTheDocument();
+    expect(container.querySelector('mark')).not.toBeNull();
 
     await user.click(screen.getByRole('button', { name: '검색어 지우기' }));
 
     expect(screen.getByText('React 공부')).toBeInTheDocument();
     expect(screen.getByText('TypeScript 정리')).toBeInTheDocument();
     expect(screen.getByText('회의록')).toBeInTheDocument();
+    expect(container.querySelector('mark')).not.toBeInTheDocument();
   });
 });

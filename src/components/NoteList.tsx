@@ -41,6 +41,7 @@ export function NoteList({ selectedNoteId, onSelect }: NoteListProps) {
               isSelected={note.id === selectedNoteId}
               onSelect={onSelect}
               onDelete={deleteNote}
+              query={query}
             />
           ))}
         </>

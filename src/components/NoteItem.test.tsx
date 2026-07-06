@@ -19,6 +19,7 @@ describe('NoteItem - 태그 읽기 전용 표시 (이슈 1)', () => {
         isSelected={false}
         onSelect={() => {}}
         onDelete={() => {}}
+        query=""
       />,
     );
 
@@ -33,6 +34,7 @@ describe('NoteItem - 태그 읽기 전용 표시 (이슈 1)', () => {
         isSelected={false}
         onSelect={() => {}}
         onDelete={() => {}}
+        query=""
       />,
     );
 
@@ -41,8 +43,62 @@ describe('NoteItem - 태그 읽기 전용 표시 (이슈 1)', () => {
   });
 
   it('태그가 없으면 태그 영역이 표시되지 않는다', () => {
-    render(<NoteItem note={baseNote} isSelected={false} onSelect={() => {}} onDelete={() => {}} />);
+    render(
+      <NoteItem
+        note={baseNote}
+        isSelected={false}
+        onSelect={() => {}}
+        onDelete={() => {}}
+        query=""
+      />,
+    );
 
     expect(screen.queryByText(/^#/)).not.toBeInTheDocument();
+  });
+});
+
+describe('NoteItem - 검색 하이라이트 (이슈 2)', () => {
+  it('query가 비어있으면 하이라이트가 적용되지 않는다', () => {
+    const { container } = render(
+      <NoteItem
+        note={baseNote}
+        isSelected={false}
+        onSelect={() => {}}
+        onDelete={() => {}}
+        query=""
+      />,
+    );
+
+    expect(container.querySelector('mark')).not.toBeInTheDocument();
+  });
+
+  it('제목과 본문 양쪽에 일치하면 둘 다 하이라이트된다', () => {
+    const note = { ...baseNote, title: 'React 공부', content: 'react 훅 정리' };
+    const { container } = render(
+      <NoteItem
+        note={note}
+        isSelected={false}
+        onSelect={() => {}}
+        onDelete={() => {}}
+        query="react"
+      />,
+    );
+
+    expect(container.querySelectorAll('mark')).toHaveLength(2);
+  });
+
+  it('원문 대소문자를 그대로 유지한 채 하이라이트한다', () => {
+    const note = { ...baseNote, title: '노트', content: 'react 훅 정리' };
+    const { container } = render(
+      <NoteItem
+        note={note}
+        isSelected={false}
+        onSelect={() => {}}
+        onDelete={() => {}}
+        query="REACT"
+      />,
+    );
+
+    expect(container.querySelector('mark')?.textContent).toBe('react');
   });
 });
